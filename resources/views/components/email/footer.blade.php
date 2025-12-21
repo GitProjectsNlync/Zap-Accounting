@@ -6,19 +6,28 @@
                     <tbody>
                         <tr>
                             <td align="center" valign="middle" style="text-align: center; padding-top: 5px;">
-                                <a href="{!! $url !!}" style="color: #676ba2; text-decoration: none;">{{ trans('footer.powered_by') }}&nbsp;</a>
+                                <span style="color: #676ba2; text-decoration: none;">
+                                    Powered by Zap Accounting
+                                </span>
                             </td>
+                        </tr>
+                        <tr>
                             <td align="center" valign="middle" style="text-align: center; padding-top: 5px;">
-                                <a href="{!! $url !!}"><img src="{{ asset('public/img/akaunting-logo-wild-blue.png') }}" style="height:20px;" alt="Akaunting" /></a>
+                                <img
+                                    src="{{ asset('public/img/company.png') }}"
+                                    style="height:20px;"
+                                    alt="Zap Accounting"
+                                />
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </td>
         </tr>
+
         <tr>
-            <td style="text-align: center; padding: 5px 0 5px 0; color: #595959;">
-                {!! trans('footer.tag_line', ['get_started_url' => $get_started]) !!}
+            <td style="text-align: center; padding: 5px 0; color: #595959;">
+                Zap Accounting — Simple, Powerful Accounting
             </td>
         </tr>
     </tbody>
