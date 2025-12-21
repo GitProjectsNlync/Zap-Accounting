@@ -14,7 +14,7 @@ return [
     | any other location as required by the application or its packages.
     */
 
-    'name' => env('APP_NAME', 'Akaunting'),
+    'name' => env('APP_NAME', 'Zap Accounting'),
 
     'installed' => (bool) env('APP_INSTALLED', false),
 
