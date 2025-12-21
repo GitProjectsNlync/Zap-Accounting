@@ -2,34 +2,45 @@
 <html dir="{{ language()->direction() }}" lang="{{ app()->getLocale() }}">
     <x-layouts.admin.head>
         @if (! empty($metaTitle))
-        <x-slot name="metaTitle">
-            {!! !empty($metaTitle->attributes->has('title')) ? $metaTitle->attributes->get('title') : $metaTitle !!}
-        </x-slot>
+            <x-slot name="metaTitle">
+                {!! !empty($metaTitle->attributes->has('title'))
+                    ? $metaTitle->attributes->get('title')
+                    : $metaTitle !!}
+            </x-slot>
         @endif
 
         <x-slot name="title">
-            {!! !empty($title->attributes->has('title')) ? $title->attributes->get('title') : $title !!}
+            {!! !empty($title)
+                ? (!empty($title->attributes->has('title'))
+                    ? $title->attributes->get('title')
+                    : $title)
+                : 'Zap Accounting' !!}
         </x-slot>
     </x-layouts.admin.head>
 
     @mobile
-    <body class="bg-body">
+        <body class="bg-body">
     @elsemobile
-    <body class="bg-body overflow-y-overlay">
+        <body class="bg-body overflow-y-overlay">
     @endmobile
 
         @stack('body_start')
 
+        <!-- Sidebar / Menu -->
         <x-layouts.admin.menu />
-
-        <!-- loading component will add this line -->
 
         <div class="main-content xl:ltr:ml-64 xl:rtl:mr-64 transition-all ease-in-out" id="panel">
             <div id="main-body">
                 <div class="container">
+
+                    <!-- Page Header -->
                     <x-layouts.admin.header>
                         <x-slot name="title">
-                            {!! ! empty($title->attributes->has('title')) ? $title->attributes->get('title') : $title !!}
+                            {!! !empty($title)
+                                ? (!empty($title->attributes->has('title'))
+                                    ? $title->attributes->get('title')
+                                    : $title)
+                                : 'Zap Accounting' !!}
                         </x-slot>
 
                         @if (! empty($status))
@@ -44,7 +55,7 @@
                             </x-slot>
                         @endif
 
-                        @if (! empty($favorite) || (! empty($favorite) && $favorite->attributes->has('title')))
+                        @if (! empty($favorite))
                             @if (! $favorite->attributes->has('title'))
                                 <x-slot name="favorite">
                                     {!! $favorite !!}
@@ -53,9 +64,9 @@
                                 @php
                                     $favorite = [
                                         'title' => $favorite->attributes->get('title'),
-                                        'icon' => $favorite->attributes->get('icon'),
-                                        'route' => !empty($favorite->attributes->has('route')) ? $favorite->attributes->get('route') : '',
-                                        'url' => !empty($favorite->attributes->has('url')) ? $favorite->attributes->get('url') : '',
+                                        'icon'  => $favorite->attributes->get('icon'),
+                                        'route' => $favorite->attributes->get('route', ''),
+                                        'url'   => $favorite->attributes->get('url', ''),
                                     ];
                                 @endphp
 
@@ -79,6 +90,7 @@
                         </x-slot>
                     </x-layouts.admin.header>
 
+                    <!-- Main Content -->
                     <x-layouts.admin.content>
                         <livewire:notification.browser />
 
@@ -87,7 +99,9 @@
                         {!! $content !!}
                     </x-layouts.admin.content>
 
+                    <!-- Footer -->
                     <x-layouts.admin.footer />
+
                 </div>
             </div>
         </div>
