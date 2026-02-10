@@ -53,7 +53,7 @@ trait DateTime
         return [$start, $end];
     }
 
-    public function getFinancialStart($year = null): Date
+    public function getFinancialStart($year = null, $date = null): Date
     {
         $start_of_year = Date::now()->startOfYear();
 
@@ -64,9 +64,8 @@ trait DateTime
         $year = $year ?? $start_of_year->year;
 
         $financial_start = Date::create($year, $month, $day);
-
-        if ((setting('localisation.financial_denote') == 'ends') && ($financial_start->dayOfYear != 1) || 
-            $financial_start->greaterThan(Date::now())
+        if ((setting('localisation.financial_denote') == 'ends') && ($financial_start->dayOfYear != 1) ||
+            $financial_start->greaterThan($date ?? Date::now())
         ) {
             $financial_start->subYear();
         }
@@ -74,10 +73,10 @@ trait DateTime
         return $financial_start;
     }
 
-    public function getFinancialWeek($year = null): CarbonPeriod
+    public function getFinancialWeek($year = null, $date = null): CarbonPeriod
     {
         $today = Date::today();
-        $financial_weeks = $this->getFinancialWeeks($year);
+        $financial_weeks = $this->getFinancialWeeks($year, $date);
 
         foreach ($financial_weeks as $week) {
             if ($today->lessThan($week->getStartDate()) || $today->greaterThan($week->getEndDate())) {
@@ -96,10 +95,10 @@ trait DateTime
         return $this_week;
     }
 
-    public function getFinancialMonth($year = null): CarbonPeriod
+    public function getFinancialMonth($year = null, $date = null): CarbonPeriod
     {
         $today = Date::today();
-        $financial_months = $this->getFinancialMonths($year);
+        $financial_months = $this->getFinancialMonths($year, $date);
 
         foreach ($financial_months as $month) {
             if ($today->lessThan($month->getStartDate()) || $today->greaterThan($month->getEndDate())) {
@@ -118,10 +117,10 @@ trait DateTime
         return $this_month;
     }
 
-    public function getFinancialQuarter($year = null): CarbonPeriod
+    public function getFinancialQuarter($year = null, $date = null): CarbonPeriod
     {
         $today = Date::today();
-        $financial_quarters = $this->getFinancialQuarters($year);
+        $financial_quarters = $this->getFinancialQuarters($year, $date);
 
         foreach ($financial_quarters as $quarter) {
             if ($today->lessThan($quarter->getStartDate()) || $today->greaterThan($quarter->getEndDate())) {
@@ -140,23 +139,23 @@ trait DateTime
         return $this_quarter;
     }
 
-    public function getFinancialYear($year = null): CarbonPeriod
+    public function getFinancialYear($year = null, $date = null): CarbonPeriod
     {
-        $financial_start = $this->getFinancialStart($year);
+        $financial_start = $this->getFinancialStart($year, $date);
 
         return CarbonPeriod::create($financial_start, $financial_start->copy()->addYear()->subDay()->endOfDay());
     }
 
-    public function getFinancialWeeks($year = null): array
+    public function getFinancialWeeks($year = null, $date = null): array
     {
         $weeks = [];
 
-        $start = $this->getFinancialStart($year);
+        $start = $this->getFinancialStart($year, $date);
 
         $w = 52;
 
         if (request()->filled('start_date') && request()->filled('end_date')) {
-            $w = Date::parse(request('start_date'))->diffInWeeks(Date::parse(request('end_date'))) + 1;
+            $w = Date::parse($start->copy())->diffInWeeks(Date::parse(request('end_date'))) + 1;
         }
 
         for ($i = 0; $i < $w; $i++) {
@@ -166,16 +165,16 @@ trait DateTime
         return $weeks;
     }
 
-    public function getFinancialMonths($year = null): array
+    public function getFinancialMonths($year = null, $date = null): array
     {
         $months = [];
 
-        $start = $this->getFinancialStart($year);
+        $start = $this->getFinancialStart($year, $date);
 
         $m = 12;
 
         if (request()->filled('start_date') && request()->filled('end_date')) {
-            $m = Date::parse(request('start_date'))->diffInMonths(Date::parse(request('end_date'))) + 1;
+            $m = Date::parse($start->copy())->diffInMonths(Date::parse(request('end_date'))) + 1;
         }
 
         for ($i = 0; $i < $m; $i++) {
@@ -185,16 +184,21 @@ trait DateTime
         return $months;
     }
 
-    public function getFinancialQuarters($year = null): array
+    public function getFinancialQuarters($year = null, $date = null): array
     {
         $quarters = [];
 
-        $start = $this->getFinancialStart($year);
+        $start = $this->getFinancialStart($year, $date);
 
         $q = 4;
 
+        /*
+            Previously, diffInQuarters was calculated from start_date, which caused errors
+            when the financial start value differed from the default value.
+            Therefore, this change has been made. Ticket: #8106
+         */
         if (request()->filled('start_date') && request()->filled('end_date')) {
-            $q = Date::parse(request('start_date'))->diffInQuarters(Date::parse(request('end_date'))) + 1;
+            $q = Date::parse($start->copy())->diffInQuarters(Date::parse(request('end_date'))) + 1;
         }
 
         for ($i = 0; $i < $q; $i++) {
@@ -285,7 +289,7 @@ trait DateTime
 
         switch ($period) {
             case 'yearly':
-                $financial_year = $this->getFinancialYear($year);
+                $financial_year = $this->getFinancialYear($year, $date);
 
                 if ($date->greaterThanOrEqualTo($financial_year->getStartDate()) && $date->lessThanOrEqualTo($financial_year->getEndDate())) {
                     if (setting('localisation.financial_denote') == 'begins') {
@@ -297,7 +301,7 @@ trait DateTime
 
                 break;
             case 'quarterly':
-                $quarters = $this->getFinancialQuarters($year);
+                $quarters = $this->getFinancialQuarters($year, $date);
 
                 foreach ($quarters as $quarter) {
                     if ($date->lessThan($quarter->getStartDate()) || $date->greaterThan($quarter->getEndDate())) {
@@ -314,7 +318,7 @@ trait DateTime
 
                 break;
             case 'weekly':
-                $weeks = $this->getFinancialWeeks($year);
+                $weeks = $this->getFinancialWeeks($year, $date);
 
                 foreach ($weeks as $week) {
                     if ($date->lessThan($week->getStartDate()) || $date->greaterThan($week->getEndDate())) {
